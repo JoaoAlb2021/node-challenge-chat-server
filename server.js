@@ -28,11 +28,13 @@ app.get("/", function (request, response) {
   response.sendFile(__dirname + "/index.html");
 });
 
+/////////////Read all messages/////////////////////
 app.get("/messages", function (request, response) {
   const messages = getQuotesFromDatabase()
   response.send(messages)
 })
 
+/////////////Create a new message///////////////////
 app.post("/messages", function (request, response) {
   const messages = getQuotesFromDatabase()
   const obj = request.body
@@ -40,6 +42,7 @@ app.post("/messages", function (request, response) {
   if (obj.text.trim().length > 0 && obj.from.trim().length > 0){
     obj.text = obj.text.trim()
     obj.from = obj.from.trim()
+    obj.timeSent = new Date() /////////Add a timestamp (levl 4)/////
     messages.push(obj)
     saveQuotesToDatabase(messages)
     response.send(obj)
@@ -50,13 +53,15 @@ app.post("/messages", function (request, response) {
 
 })
 
-app.get('/messages/search', function(request,response) {
+////////////Search a message by id/////////////////////////////////
+app.get("/messages/search_by_id/:id", function (request, response){
+  const id = Number(request.params.id)
   const messages = getQuotesFromDatabase()
-  const id = Number(request.query.id)
   const messageId = messages.find(obj => obj.id === id)
   response.send(messageId)
 })
 
+///////////Delete a message by id/////////////////////////////
 app.delete('/messages/delete/:id', function(request,response){
   let messages = getQuotesFromDatabase()
   const id = Number(request.params.id)
@@ -65,6 +70,38 @@ app.delete('/messages/delete/:id', function(request,response){
   saveQuotesToDatabase(messages)
   response.send(messageId)
 })
+
+
+//////////////Search by text query//////////////////////////////
+app.get('/messages/search_by_text', function(request,response) {
+  const messages = getQuotesFromDatabase()
+  const text = request.query.text.toLowerCase()
+  newJson = []
+  
+  messages.map((obj)=> {
+    if(obj.text.toLowerCase().includes(text) === true || obj.from.toLowerCase().includes(text)) {
+      newJson.push(obj)
+      return(newJson)
+    }
+  })
+  response.send(newJson)
+})
+
+////////////Show the most recent 10 messages///////////
+app.get('/messages/latest', function(request,response){
+  const messages = getQuotesFromDatabase()
+  const lengthOfMessages = messages.length
+  const latestMessage = 10
+  newJson = []
+
+  for (let i = lengthOfMessages - latestMessage; i < lengthOfMessages; i++) {
+    newJson.push(messages[i])
+  }
+  response.send(newJson)
+
+})
+
+
 
 const port = 3000
 app.listen(port, () => {
