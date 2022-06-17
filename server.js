@@ -48,7 +48,9 @@ app.post("/messages", function (request, response) {
     response.send(obj)
   }
   else {
-    response.send("400 Bad Request....Name and Message are invalid.")
+    response
+      .status(400)
+      .send("Name and Message are invalid.")
   }
 
 })
